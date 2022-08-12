@@ -16,11 +16,14 @@ class Budget {
     }
 }
 
-class UI {
-
+class Ui {
+    addBudget = ({ budget, remaining }) => {
+        document.getElementById('total').textContent = budget;
+        document.getElementById('restante').textContent = remaining;
+    }
 }
 
-const UI = new UI();
+const UI = new Ui();
 let budget;
 
 //Funciones
