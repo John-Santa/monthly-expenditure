@@ -24,6 +24,11 @@ class Budget {
     calculateRemaining() {
         this.remaining = this.budget - this.expenses.reduce((acumulate, expense) => acumulate + expense.expenseAmount, 0);
     }
+
+    deleteExpenseById(id) {
+        this.expenses = this.expenses.filter(expense => expense.id !== id);
+        this.calculateRemaining();
+    }
 }
 
 class Ui {
@@ -47,7 +52,7 @@ class Ui {
         }, 3000);
     }
 
-    addExpense = (expenses) => {
+    showExpenses = (expenses) => {
         //Limpiar lista
         this.cleanHTML();
         expenses.forEach(expense => {
@@ -64,6 +69,11 @@ class Ui {
             const deleteExpense = document.createElement('button');
             deleteExpense.innerHTML = 'Borrar &times;';
             deleteExpense.classList.add('btn', 'btn-danger', 'borrar-gasto');
+
+            deleteExpense.onclick = () => {
+                deleteExpenseById(id);
+            }
+
             newExpense.appendChild(deleteExpense);
 
             expensesList.appendChild(newExpense);
@@ -72,6 +82,20 @@ class Ui {
 
     updateRemaining = (remaining) => {
         document.querySelector('#restante').textContent = remaining;
+    }
+
+    validateBudget = (budgetObj) => {
+        const { budget, remaining } = budgetObj;
+        const remainingDiv = document.querySelector('.restante');
+
+        //Validate 25%
+        if (remaining < (budget * 0.25)) {
+            remainingDiv.classList.remove('alert-success', 'alert-warning');
+            remainingDiv.classList.add('alert-danger');
+        } else if (remaining < (budget * 0.5)) {
+            remainingDiv.classList.remove('alert-success');
+            remainingDiv.classList.add('alert-warning');
+        }
     }
 
     cleanHTML = () => {
@@ -111,10 +135,20 @@ const addExpense = (e) => {
     const expense = { expenseName, expenseAmount, id: Date.now() };
     budget.addExpense(expense);
     const { expenses, remaining } = budget;
-    UI.addExpense(expenses);
+
+    UI.showExpenses(expenses);
     UI.updateRemaining(remaining);
+    UI.validateBudget(budget);
     form.reset();
 
+}
+
+const deleteExpenseById = (id) => {
+    budget.deleteExpenseById(id);
+    const { expenses, remaining } = budget;
+    UI.showExpenses(expenses);
+    UI.updateRemaining(remaining);
+    UI.validateBudget(budget);
 }
 
 
