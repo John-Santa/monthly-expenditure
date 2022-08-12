@@ -1,6 +1,6 @@
 //Variables y selectores
 const form = document.getElementById('agregar-gasto');
-const expensesList = document.getElementById('gastos-ul');
+const expensesList = document.querySelector('#gastos ul');
 
 //Eventos
 const eventListeners = () => {
@@ -14,6 +14,15 @@ class Budget {
         this.budget = Number(budget);
         this.remaining = Number(budget);
         this.expenses = [];
+    }
+
+    addExpense(expense) {
+        this.expenses = [...this.expenses, expense];
+        this.calculateRemaining();
+    }
+
+    calculateRemaining() {
+        this.remaining = this.budget - this.expenses.reduce((acumulate, expense) => acumulate + expense.expenseAmount, 0);
     }
 }
 
@@ -37,6 +46,39 @@ class Ui {
             document.querySelector('.primario').removeChild(div);
         }, 3000);
     }
+
+    addExpense = (expenses) => {
+        //Limpiar lista
+        this.cleanHTML();
+        expenses.forEach(expense => {
+            const { expenseName, expenseAmount, id } = expense;
+            const newExpense = document.createElement('li');
+            newExpense.className = 'list-group-item d-flex justify-content-between align-items-center';
+            //Alternativa para no usar setAttribute
+            newExpense.dataset.id = id;
+            newExpense.innerHTML = `
+                ${expenseName}
+                <span class="badge badge-primary badge-pill">$ ${expenseAmount}</span>
+            `;
+
+            const deleteExpense = document.createElement('button');
+            deleteExpense.innerHTML = 'Borrar &times;';
+            deleteExpense.classList.add('btn', 'btn-danger', 'borrar-gasto');
+            newExpense.appendChild(deleteExpense);
+
+            expensesList.appendChild(newExpense);
+        });
+    }
+
+    updateRemaining = (remaining) => {
+        document.querySelector('#restante').textContent = remaining;
+    }
+
+    cleanHTML = () => {
+        while (expensesList.firstChild) {
+            expensesList.removeChild(expensesList.firstChild);
+        }
+    }
 }
 
 const UI = new Ui();
@@ -56,15 +98,22 @@ const askBudget = () => {
 
 const addExpense = (e) => {
     e.preventDefault();
-    const expense = document.getElementById('gasto').value;
-    const expenseAmount = document.getElementById('cantidad').value;
+    const expenseName = document.getElementById('gasto').value;
+    const expenseAmount = Number(document.getElementById('cantidad').value);
 
-    if (expense === '' || expenseAmount === '' || isNaN(expenseAmount) || expenseAmount <= 0) {
+    if (expenseName === '' || expenseAmount === '' || isNaN(expenseAmount) || expenseAmount <= 0) {
         UI.printAlert('Ambos campos son obligatorios y la cantidad debe ser mayor a 0', 'error');
         return;
     }else {
         UI.printAlert('Gasto agregado correctamente', 'success');
     }
+    //Generar objeto de gasto
+    const expense = { expenseName, expenseAmount, id: Date.now() };
+    budget.addExpense(expense);
+    const { expenses, remaining } = budget;
+    UI.addExpense(expenses);
+    UI.updateRemaining(remaining);
+    form.reset();
 
 }
 
